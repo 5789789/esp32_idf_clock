@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/cbq/esp-idf/components/log/include",
+                "/home/cbq/esp-idf/components/esp_rom/include",
+                "/home/cbq/esp-idf/components/console",
+                "/home/cbq/esp-idf/components/esp_common/include",
+                "/home/cbq/esp-idf/components/fatfs/vfs",
+                "${workspaceFolder}/components/cmd_system"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x64",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "~/esp-idf/components",
+                    "~/.espressif",
+                    "${workspaceFolder}/**"
+                ]
+            }
+        }
+    ],
+    "version": 4
+}

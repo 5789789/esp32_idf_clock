@@ -2,7 +2,7 @@
 set(COMPONENT_REQUIRES )
 set(COMPONENT_PRIV_REQUIRES )
 
-set(COMPONENT_SRCS "main.c" "console.c")
+set(COMPONENT_SRCS "main.c" "console.c" "oled.c" "u8g2_esp32_hal.c")
 set(COMPONENT_ADD_INCLUDEDIRS "")
 
 register_component()

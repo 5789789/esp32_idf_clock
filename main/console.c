@@ -6,8 +6,12 @@
 #include "esp_vfs_dev.h"
 #include "driver/uart.h"
 #include "linenoise/linenoise.h"
-
+#include "esp_vfs_fat.h"
+#include "nvs.h"
+#include "nvs_flash.h"
 #include "cmd_system.h"
+
+#include "cmd_decl.h"
 
 
 #define PROMPT_STR CONFIG_IDF_TARGET
@@ -86,12 +90,25 @@ void console_task_init(void)
                 (TaskHandle_t*  )NULL);
 
 }
+static void initialize_nvs(void)
+{
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK( nvs_flash_erase() );
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(err);
+}
 
 static void console_task(void *pvParameters)
 {
+    initialize_nvs();
+    register_nvs();
     initialize_console();
     esp_console_register_help_command();
     register_system();
+    register_wifi();
+    register_ping();
     const char* prompt = LOG_COLOR_I PROMPT_STR "> " LOG_RESET_COLOR;
     while(1)
     {

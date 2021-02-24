@@ -58,7 +58,7 @@ static void test_oled(void)
 
 	
  
-#if 0
+#if 1
   ESP_LOGI(TAG, "u8g2_DrawBox");
   u8g2_DrawBox(&u8g2, 0, 26, 80, 6);
   u8g2_DrawFrame(&u8g2, 0, 26, 100, 6);
@@ -68,10 +68,11 @@ static void test_oled(void)
   ESP_LOGI(TAG, "u8g2_DrawStr");
   u8g2_DrawStr(&u8g2, 2, 17, "Hi nkolban!");
   u8g2_SetFont(&u8g2, u8g2_font_wqy13_t_gb2312a);
-  u8g2_DrawUTF8(&u8g2,-5,50,"测试字符123好的学习嘻嘻哈哈");
+  u8g2_DrawUTF8(&u8g2,-5,50,"测试123456");
   ESP_LOGI(TAG, "u8g2_SendBuffer");
   u8g2_SendBuffer(&u8g2);	
 #endif
+#if 0
 	 u8g2_SetFontMode(&u8g2, 1);  // Transparent
     u8g2_SetFontDirection(&u8g2, 0);
     u8g2_SetFont(&u8g2, u8g2_font_inb24_mf);
@@ -94,12 +95,14 @@ static void test_oled(void)
     u8g2_SetFont(&u8g2, u8g2_font_4x6_tr);
     u8g2_DrawStr(&u8g2, 1,54,"github.com/olikraus/u8g2");
 
+
     u8g2_SendBuffer(&u8g2);	
+#endif
 }
 
 static void oled_task(void *pvParameters)
 {
-test_oled();
+    test_oled();
     while(1)
     {
         vTaskDelay(10 / portTICK_PERIOD_MS);

@@ -7,8 +7,9 @@
 
 void app_main(void)
 {
-    console_task_init();
     oled_init();
+    console_task_init();
+
     int i = 0;
     while (1) {
         //printf("[%d] Hello world!\n", i);

@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "oled.h": "c"
+        "oled.h": "c",
+        "future": "c",
+        "*.ipp": "c",
+        "*.inc": "c"
     }
 }

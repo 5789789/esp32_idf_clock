@@ -14,7 +14,8 @@ extern "C" {
 
 // Register WiFi functions
 void register_wifi(void);
-
+void wifi_para_init(void);
+void register_set_wifi_para(void);
 #ifdef __cplusplus
 }
 #endif

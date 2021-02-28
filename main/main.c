@@ -4,16 +4,21 @@
 
 #include "console.h"
 #include "oled.h"
+#include "cmd_wifi.h"
+
+
+
+
 
 void app_main(void)
 {
     oled_init();
     console_task_init();
+    wifi_para_init();
+    while (1)
+    {
+        
 
-    int i = 0;
-    while (1) {
-        //printf("[%d] Hello world!\n", i);
-        i++;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }

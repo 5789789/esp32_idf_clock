@@ -90,7 +90,7 @@ static struct
     struct arg_str *ssid;
     struct arg_str *password;
     struct arg_end *end;
-} join_args;
+} join_args, wifi_para_args;
 
 static int connect(int argc, char **argv)
 {
@@ -134,6 +134,116 @@ void register_wifi(void)
         .hint = NULL,
         .func = &connect,
         .argtable = &join_args};
+
+    ESP_ERROR_CHECK(esp_console_cmd_register(&join_cmd));
+}
+
+#include "nvs.h"
+#include "nvs_flash.h"
+#include "esp_wifi_types.h"
+#include "esp_log.h"
+static const char *TAG = "cmd_wifi";
+
+const char *wifi_config = "wifi_config";
+
+void wifi_para_init(void)
+{
+    nvs_handle handle;
+
+    wifi_config_t wifi_config_stored;
+    memset(&wifi_config_stored, 0x0, sizeof(wifi_config_stored));
+    uint32_t len = sizeof(wifi_config_stored);
+
+    ESP_ERROR_CHECK(nvs_open("storage", NVS_READWRITE, &handle));
+
+esp_err_t err;
+ err=nvs_get_blob(handle, wifi_config, &wifi_config_stored, &len);
+    switch (err) {
+    case ESP_OK:
+         printf("get wifi para: ssid:%s passwd:%s\r\n", wifi_config_stored.sta.ssid, wifi_config_stored.sta.password);
+             bool connected = wifi_join((const char *)wifi_config_stored.sta.ssid,
+                               (const char *)wifi_config_stored.sta.password,
+                               JOIN_TIMEOUT_MS);
+    if (!connected)
+    {
+        ESP_LOGW(__func__, "Connection timed out");
+  
+    }
+    ESP_LOGI(__func__, "Connected");
+        break;
+    case ESP_ERR_NVS_NOT_FOUND:
+        printf("The value is not initialized yet!\n");
+        break;
+    default :
+        printf("Error (%s) reading!\n", esp_err_to_name(err));
+    }
+
+
+
+   
+
+    nvs_close(handle);
+}
+
+static int set_wifi_para(int argc, char **argv)
+{
+
+    int nerrors = arg_parse(argc, argv, (void **)&wifi_para_args);
+    if (nerrors != 0)
+    {
+        arg_print_errors(stderr, wifi_para_args.end, argv[0]);
+        return 1;
+    }
+    ESP_LOGI(__func__, "Connecting to '%s'",
+             wifi_para_args.ssid->sval[0]);
+
+    /* set default value*/
+    if (wifi_para_args.timeout->count == 0)
+    {
+        wifi_para_args.timeout->ival[0] = JOIN_TIMEOUT_MS;
+    }
+
+  
+
+    nvs_handle handle;
+    wifi_config_t wifi_config_to_store;
+    memset(&wifi_config_to_store, '\0', sizeof(wifi_config_to_store));
+    strcpy((char *)wifi_config_to_store.sta.ssid,wifi_para_args.ssid->sval[0]);
+    strncpy((char *)(wifi_config_to_store.sta.password) ,wifi_para_args.password->sval[0],63);
+    	ESP_LOGI(TAG, "set wifi para: ssid:%s passwd:%s\r\n", wifi_config_to_store.sta.ssid, wifi_config_to_store.sta.password);
+
+    ESP_ERROR_CHECK(nvs_open("storage", NVS_READWRITE, &handle));
+
+    ESP_ERROR_CHECK(nvs_set_blob(handle, wifi_config, &wifi_config_to_store, sizeof(wifi_config_to_store)));
+
+    ESP_ERROR_CHECK(nvs_commit(handle));
+    nvs_close(handle);
+
+    // bool connected = wifi_join(join_args.ssid->sval[0],
+    //                            join_args.password->sval[0],
+    //                            join_args.timeout->ival[0]);
+    // if (!connected)
+    // {
+    //     ESP_LOGW(__func__, "Connection timed out");
+    //     return 1;
+    // }
+    // ESP_LOGI(__func__, "Connected");
+    return 0;
+}
+
+void register_set_wifi_para(void)
+{
+    wifi_para_args.timeout = arg_int0(NULL, "timeout", "<t>", "Connection timeout, ms");
+    wifi_para_args.ssid = arg_str1(NULL, NULL, "<ssid>", "SSID of AP");
+    wifi_para_args.password = arg_str0(NULL, NULL, "<pass>", "PSK of AP");
+    wifi_para_args.end = arg_end(2);
+
+    const esp_console_cmd_t join_cmd = {
+        .command = "set_wifi",
+        .help = "set Join WiFi AP para",
+        .hint = NULL,
+        .func = &set_wifi_para,
+        .argtable = &wifi_para_args};
 
     ESP_ERROR_CHECK(esp_console_cmd_register(&join_cmd));
 }

@@ -100,15 +100,18 @@ static void initialize_nvs(void)
     ESP_ERROR_CHECK(err);
 }
 
+
+
 static void console_task(void *pvParameters)
 {
     initialize_nvs();
-    register_nvs();
+   // register_nvs();
     initialize_console();
     esp_console_register_help_command();
     register_system();
     register_wifi();
-    register_ping();
+    register_set_wifi_para();
+   // register_ping();
     const char* prompt = LOG_COLOR_I PROMPT_STR "> " LOG_RESET_COLOR;
     while(1)
     {

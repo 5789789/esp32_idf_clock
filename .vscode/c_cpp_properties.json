@@ -12,7 +12,8 @@
                 "${workspaceFolder}/components/cmd_system",
                 "/home/cbq/esp-idf/components/driver/include",
                 "/home/cbq/esp-idf/components/lwip/test_afl_host",
-                "/home/cbq/esp-idf/components/freertos/include"
+                "/home/cbq/esp-idf/components/freertos/include",
+                "/home/cbq/esp-idf/components/esp_wifi/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

@@ -6,12 +6,9 @@
 #include "oled.h"
 #include "cmd_wifi.h"
 
-
-
-
-
 void app_main(void)
 {
+    
     oled_init();
     console_task_init();
     wifi_para_init();

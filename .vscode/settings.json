@@ -3,6 +3,7 @@
         "oled.h": "c",
         "future": "c",
         "*.ipp": "c",
-        "*.inc": "c"
+        "*.inc": "c",
+        "time_driver.h": "c"
     }
 }

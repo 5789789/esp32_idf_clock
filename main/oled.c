@@ -9,6 +9,7 @@
 #include <driver/spi_master.h>
 #include <esp_log.h>
 
+#include "time_driver.h"
 #define PIN_SDA 21
 #define PIN_SCL 22
 #define I2C_ADDRESS 0x78
@@ -50,7 +51,7 @@ static void oled_hal_init(void)
 
   u8g2_ClearBuffer(&u8g2);
 }
-
+#if 0
 static void test_oled(void)
 {
 
@@ -95,7 +96,7 @@ static void test_oled(void)
     u8g2_SendBuffer(&u8g2);
 #endif
 }
-
+#endif
 #define WIFI__SHOW 0
 #define WIFI_ICON_TOGGLE 1
 #define WIFI_ICON_NONE 255
@@ -112,14 +113,14 @@ void show_wifi_icon(void)
     u8g2_SetFont(&u8g2, u8g2_font_open_iconic_embedded_1x_t);
     u8g2_DrawGlyph(&u8g2, 120, 8, 80);
     u8g2_SendBuffer(&u8g2);
-    wifi_icon_sta=WIFI_ICON_NONE;
+    wifi_icon_sta = WIFI_ICON_NONE;
     break;
   case WIFI_ICON_TOGGLE:
     toggle_count++;
     if (toggle_count == 30)
     {
       //show
-        u8g2_SetDrawColor(&u8g2, 1);
+      u8g2_SetDrawColor(&u8g2, 1);
       u8g2_SetFont(&u8g2, u8g2_font_open_iconic_embedded_1x_t);
       u8g2_DrawGlyph(&u8g2, 120, 8, 80);
       u8g2_SendBuffer(&u8g2);
@@ -142,20 +143,53 @@ void show_wifi_icon(void)
 
 void show_time(void)
 {
+  static uint32_t time_count = 0;
+
+  timer_event_t evt;
+  if (xQueueReceive(timer_queue, &evt, 0) == pdTRUE)
+  {
+    time_count++;
+    u8g2_SetFont(&u8g2, u8g2_font_inb21_mf);
+    if (time_count % 2 == 0)
+    {
+      
+    u8g2_DrawStr(&u8g2, 54, 40, ":");
+ 
+    }
+    else
+    {
+        u8g2_DrawStr(&u8g2, 54, 40, " ");
+    }
+     u8g2_SendBuffer(&u8g2);
+  }
+
+  // u8g2_SetDrawColor(&u8g2, 1);
+  // u8g2_SetFont(&u8g2, u8g2_font_wqy16_t_gb2312a);
+  // u8g2_DrawUTF8(&u8g2, 0, 22, "03-01 12 12 日");
+  // u8g2_SendBuffer(&u8g2);
+}
+
+void show_text(void)
+{
   u8g2_SetDrawColor(&u8g2, 1);
-  u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
-  u8g2_DrawStr(&u8g2, 0, 22, "12:12");
+  u8g2_SetFont(&u8g2, u8g2_font_wqy16_t_gb2312a);
+  u8g2_DrawUTF8(&u8g2, 0, 61, "一路向前 莫问前程");
   u8g2_SendBuffer(&u8g2);
 }
 
 static void oled_task(void *pvParameters)
 {
+
   //test_oled();
-
-  show_time();
-
+  time_driver_init();
+  show_text();
+  u8g2_SetDrawColor(&u8g2, 1);
+  u8g2_SetFont(&u8g2, u8g2_font_inb21_mf);
+  u8g2_DrawStr(&u8g2, 16, 40, "12:12");
+  u8g2_SendBuffer(&u8g2);
   while (1)
   {
+    show_time();
     show_wifi_icon();
     vTaskDelay(10 / portTICK_PERIOD_MS);
   }

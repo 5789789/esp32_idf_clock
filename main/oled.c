@@ -168,27 +168,98 @@ void show_time(void)
   // u8g2_DrawUTF8(&u8g2, 0, 22, "03-01 12 12 日");
   // u8g2_SendBuffer(&u8g2);
 }
-
-void show_text(void)
+ #include <string.h>
+#define OLED_PX 128
+#define FONT_SIZE 8
+void show_text(const char *text)
 {
+  int test_len=17*FONT_SIZE;
+  static unsigned char time_count =0;
+  static int text_pos=OLED_PX;
+  unsigned char offset=2;
+  time_count ++;
   u8g2_SetDrawColor(&u8g2, 1);
   u8g2_SetFont(&u8g2, u8g2_font_wqy16_t_gb2312a);
-  u8g2_DrawUTF8(&u8g2, 0, 61, "一路向前 莫问前程");
+  if(time_count>=1)//移动速度
+  {
+    time_count=0;
+    //移动文字
+    if(test_len>OLED_PX)
+    {
+      u8g2_SetDrawColor(&u8g2, 0);
+      u8g2_DrawBox(&u8g2, 0, 45, 128, 18);
+      u8g2_SetDrawColor(&u8g2, 1);
+      u8g2_DrawUTF8(&u8g2, text_pos, 61, text);
+      text_pos-=offset;//移动
+      //重新移动
+      if(text_pos<(-test_len))
+      {
+        text_pos=OLED_PX;
+      }
+
+    }
+    else
+    {
+      //显示屏可以显示
+      u8g2_DrawUTF8(&u8g2, 0, 61, text);
+    }
+
+  }
+
+  
   u8g2_SendBuffer(&u8g2);
+}
+
+unsigned char cacl_rol_1(unsigned char data)
+{
+    unsigned  char count = 0;
+    while (data & 0x80)
+    {
+        count ++;
+        data <<= 1;
+    }
+    return count;
+
+}
+unsigned char cacl_test_size(const char *test)
+{
+    unsigned char ret;
+    unsigned char cacl_size = 0;
+    while (*test)
+    {
+        ret = cacl_rol_1(*test);
+        if(ret == 0) //ascall码
+        {
+            test++;
+            cacl_size++;
+        }
+        else
+        {
+            test += 3;
+            cacl_size += 2;
+        }
+    }
+    return cacl_size;
+
+
 }
 
 static void oled_task(void *pvParameters)
 {
-
+  const char * text="一路向前 莫问前程";
+  unsigned char text_len;
+  text_len=cacl_test_size(text);
+  ESP_LOGI(TAG,"test len %d",text_len);
   //test_oled();
   time_driver_init();
-  show_text();
+  
   u8g2_SetDrawColor(&u8g2, 1);
   u8g2_SetFont(&u8g2, u8g2_font_inb21_mf);
   u8g2_DrawStr(&u8g2, 16, 40, "12:12");
   u8g2_SendBuffer(&u8g2);
   while (1)
   {
+    show_text(text);
     show_time();
     show_wifi_icon();
     vTaskDelay(10 / portTICK_PERIOD_MS);

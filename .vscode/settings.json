@@ -4,6 +4,9 @@
         "future": "c",
         "*.ipp": "c",
         "*.inc": "c",
-        "time_driver.h": "c"
+        "time_driver.h": "c",
+        "chrono": "c",
+        "random": "c",
+        "limits": "c"
     }
 }

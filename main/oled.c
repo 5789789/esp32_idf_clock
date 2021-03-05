@@ -8,8 +8,10 @@
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 #include <esp_log.h>
-
+#include <string.h>
 #include "time_driver.h"
+
+#include "esp_sntp.h"
 #define PIN_SDA 21
 #define PIN_SCL 22
 #define I2C_ADDRESS 0x78
@@ -17,7 +19,7 @@ static const char *TAG = "oled";
 
 static void oled_task(void *pvParameters);
 static void oled_hal_init(void);
-static void test_oled(void);
+//static void test_oled(void);
 
 u8g2_t u8g2;
 
@@ -140,15 +142,57 @@ void show_wifi_icon(void)
     break;
   }
 }
+const char *week_buf[]={"Sun","Mon","Tue","Wed","Thur","Fri","Sat"};
+void check_need_update_y_m_d(struct tm *new_time)
+{
+  static struct tm old_time={0};
+  char time_buf[30];
+  if((old_time.tm_year!=new_time->tm_year)\
+      ||(old_time.tm_mon!=new_time->tm_mon)\
+      ||(old_time.tm_mday!=new_time->tm_mday))
+      {
+        u8g2_SetDrawColor(&u8g2, 0);
+        u8g2_DrawBox(&u8g2, 0, 0, 100, 8);
+        u8g2_SetDrawColor(&u8g2, 1);   
+        memcpy(&old_time,new_time,sizeof(struct tm));
+        sprintf(time_buf,"%02d-%02d %s",old_time.tm_mon+1,old_time.tm_mday,week_buf[old_time.tm_wday]);
+        ESP_LOGI(TAG,"set date %s",time_buf);
+        u8g2_SetFont(&u8g2, u8g2_font_courB08_tf);
+        u8g2_DrawStr(&u8g2, 10, 8, time_buf);     
+        u8g2_SendBuffer(&u8g2);
+      }
 
+
+
+
+}
 void show_time(void)
 {
   static uint32_t time_count = 0;
-
+  static unsigned char old_hour=24;
+  static unsigned char old_min=0;
+  unsigned char hour=0;
+  unsigned char min=0;
+  char time_str[10];
   timer_event_t evt;
   if (xQueueReceive(timer_queue, &evt, 0) == pdTRUE)
   {
     time_count++;
+    struct tm timeinfo;
+    time_t now;
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    hour=timeinfo.tm_hour;
+    min=timeinfo.tm_min;
+    if (hour!=old_hour || min!=old_min)
+    {
+      old_hour=hour;
+      old_min=min;
+      sprintf(time_str,"%02d:%02d",old_hour,old_min);
+      u8g2_SetFont(&u8g2, u8g2_font_inb21_mf);
+      u8g2_DrawStr(&u8g2, 16, 40, time_str);
+      check_need_update_y_m_d(&timeinfo);      
+    }
     u8g2_SetFont(&u8g2, u8g2_font_inb21_mf);
     if (time_count % 2 == 0)
     {
@@ -160,6 +204,9 @@ void show_time(void)
     {
         u8g2_DrawStr(&u8g2, 54, 40, " ");
     }
+
+    
+
      u8g2_SendBuffer(&u8g2);
   }
 
@@ -252,11 +299,9 @@ static void oled_task(void *pvParameters)
   ESP_LOGI(TAG,"test len %d",text_len);
   //test_oled();
   time_driver_init();
-  
-  u8g2_SetDrawColor(&u8g2, 1);
-  u8g2_SetFont(&u8g2, u8g2_font_inb21_mf);
-  u8g2_DrawStr(&u8g2, 16, 40, "12:12");
-  u8g2_SendBuffer(&u8g2);
+
+
+
   while (1)
   {
     show_text(text);
